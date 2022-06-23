@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, createContext, useContext, Fragment } from 'react';
 import { i18n } from '@kbn/i18n';
 import { FormattedMessage, I18nProvider } from '@kbn/i18n/react';
 import { BrowserRouter as Router } from 'react-router-dom';
@@ -14,10 +14,8 @@ import {
   EuiPageHeader,
   EuiTitle,
   EuiText,
-  formatDate, 
-  EuiBasicTable, 
-  EuiLink, 
-  EuiHealth,
+  EuiDataGrid,
+  EuiLink,
 } from '@elastic/eui';
 
 import { CoreStart } from '../../../../src/core/public';
@@ -34,10 +32,14 @@ interface MyPluginAppDeps {
   data: DataPublicPluginStart;
 }
 
+const DataContext = createContext<any>(undefined);
+
 export const MyPluginApp = ({ basename, notifications, http, navigation, data }: MyPluginAppDeps) => {
   // Use React hooks to manage state.
   const [hits, setHits] = useState<Array<Record<string, any>>>();
-
+  const [dataHit, setDataHit] = useState<string | any[]>([]);
+  const raw_data: string | any[] = [];
+  
   const onSearchHandler = async () => {
     
     // Use the core http service to make a response to the server API.
@@ -49,19 +51,30 @@ export const MyPluginApp = ({ basename, notifications, http, navigation, data }:
     if (timefilter) {
       filters.push(timefilter);
     }
+
     try {
       const searchResponse = await searchSource
         .setField('index', indexPattern)
         .setField('filter', filters)
         .fetch();
       
-      setHits(searchResponse.hits.hits);
-      // if (hits) {
-      //   for (let i = 0; i < hits.length; i++) {
-      //     const {_source} = hits[i];
-      //   }
-      // }
-
+      const dataHit = searchResponse.hits.hits;
+      if (dataHit) {
+        for (let i = 0; i < dataHit.length; i++) {
+          const {_source} = dataHit[i];
+          raw_data.push({
+              firstName: _source.customer_first_name,
+              lastName: _source.customer_last_name,
+              email: _source.email,
+              date: _source.order_date,
+              amount : _source.taxless_total_price,
+              location: _source.geoip.city_name,
+              products : [...(_source.products).map( (p : any) => p.product_name)],
+          })
+        }
+      }
+      setHits(dataHit);
+      setDataHit(raw_data);
       notifications.toasts.addSuccess(
           i18n.translate('myPlugin.dataUpdated', {
             defaultMessage: 'Data Updated',
@@ -76,8 +89,54 @@ export const MyPluginApp = ({ basename, notifications, http, navigation, data }:
     }
   };
 
-  // Render the application DOM.
-  // Note that `navigation.ui.TopNavMenu` is a stateful component exported on the `navigation` plugin's start contract.
+  const RenderCellValue = ({ rowIndex, columnId } : any) => {
+    const data = useContext(DataContext);
+
+    function getFormatted() {
+      return data[rowIndex][columnId]
+    }
+    let x = 1;
+    console.log(x++)
+    return data.hasOwnProperty(rowIndex)
+      ? getFormatted(rowIndex, columnId)
+      : null;
+  };
+
+  const columns = [
+    {
+      id: 'firstName',
+      displayAsText: 'First Name',
+    },
+    {
+      id: 'lastName',
+      displayAsText: 'Last Name',
+    },
+    {
+      id: 'email',
+      displayAsText: 'Email Address',
+    },
+    {
+      id: 'date',
+      displayAsText: 'Order Date',
+    },
+    {
+      id: 'amount',
+      displayAsText: 'Total Amount',
+    },
+    {
+      id: 'location',
+      displayAsText: 'Location',
+    },
+    {
+      id: 'products',
+      displayAsText: 'Product Items',
+    }
+  ];
+
+  const [visibleColumns, setVisibleColumns] = useState(
+    columns.map(({ id }) => id) 
+  );
+
   return (
     <Router basename={basename}>
       <I18nProvider>
@@ -123,7 +182,17 @@ export const MyPluginApp = ({ basename, notifications, http, navigation, data }:
                     <EuiButton type="primary" size="s" onClick={onSearchHandler}>
                         <FormattedMessage id="myPlugin.buttonText" defaultMessage="Search data" />
                     </EuiButton>
-                    {hits && <pre>{JSON.stringify(hits, null, 2)}</pre>}
+                    {/* {hits && <pre>{JSON.stringify(hits, null, 2)}</pre>} */}
+                    { hits && 
+                    <DataContext.Provider value={dataHit}>
+                      <EuiDataGrid
+                        aria-label="Data Table"
+                        columns={columns}
+                        columnVisibility={{ visibleColumns, setVisibleColumns }}
+                        rowCount={dataHit.length}
+                        renderCellValue={RenderCellValue}
+                      />
+                    </DataContext.Provider>}
                   </EuiText>
                 </EuiPageContentBody>
               </EuiPageContent>
