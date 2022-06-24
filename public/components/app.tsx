@@ -1,4 +1,4 @@
-import React, { useState, createContext, useContext } from 'react';
+import React, { useState, createContext, useContext, useCallback } from 'react';
 import { i18n } from '@kbn/i18n';
 import { FormattedMessage, I18nProvider } from '@kbn/i18n/react';
 import { BrowserRouter as Router } from 'react-router-dom';
@@ -29,6 +29,13 @@ interface MyPluginAppDeps {
   http: CoreStart['http'];
   navigation: NavigationPublicPluginStart;
   data: DataPublicPluginStart;
+}
+
+interface ColumnsInterface {
+    id: any,
+    displayAsText?: string,
+    defaultSortDirection?: 'asc' | 'desc' | undefined,
+    isSortable?: false
 }
 
 const DataContext = createContext<any>(undefined);
@@ -94,36 +101,52 @@ export const MyPluginApp = ({ basename, notifications, http, navigation, data }:
     return data[rowIndex][columnId] ? data[rowIndex][columnId] : null;
   }
 
-  const columns = [
+  const columns : ColumnsInterface[] = [
     {
       id: 'firstName',
       displayAsText: 'First Name',
+      defaultSortDirection: 'asc',
     },
     {
       id: 'lastName',
       displayAsText: 'Last Name',
+      isSortable: false,
     },
     {
       id: 'email',
       displayAsText: 'Email Address',
+      isSortable: false,
     },
     {
       id: 'date',
       displayAsText: 'Order Date',
+      isSortable: false,
     },
     {
       id: 'amount',
       displayAsText: 'Total Amount',
+      isSortable: false,
     },
     {
       id: 'location',
       displayAsText: 'Location',
+      isSortable: false,
     },
     {
       id: 'products',
       displayAsText: 'Product Items',
+      isSortable: false,
     }
   ];
+
+  // sorting
+  const [sortingColumns, setSortingColumns] = useState([]);
+  const onSort = useCallback(
+    (sortingColumns) => {
+      setSortingColumns(sortingColumns);
+    },
+    [setSortingColumns]
+  );
 
   const [visibleColumns, setVisibleColumns] = useState(
     columns.map(({ id }) => id) 
@@ -174,7 +197,6 @@ export const MyPluginApp = ({ basename, notifications, http, navigation, data }:
                     <EuiButton type="primary" size="s" onClick={onSearchHandler}>
                         <FormattedMessage id="myPlugin.buttonText" defaultMessage="Search data" />
                     </EuiButton>
-                    {/* {hits && <pre>{JSON.stringify(hits, null, 2)}</pre>} */}
                     { hits && 
                     <DataContext.Provider value={dataHit}>
                       <EuiDataGrid
@@ -182,6 +204,8 @@ export const MyPluginApp = ({ basename, notifications, http, navigation, data }:
                         columns={columns}
                         columnVisibility={{ visibleColumns, setVisibleColumns }}
                         rowCount={dataHit.length}
+                        sorting={{ columns: sortingColumns, onSort }}
+                        inMemory={{ level: 'sorting' }}
                         renderCellValue={RenderCellValue}
                       />
                     </DataContext.Provider>}
