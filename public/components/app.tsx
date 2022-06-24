@@ -1,4 +1,4 @@
-import React, { useState, createContext, useContext, Fragment } from 'react';
+import React, { useState, createContext, useContext } from 'react';
 import { i18n } from '@kbn/i18n';
 import { FormattedMessage, I18nProvider } from '@kbn/i18n/react';
 import { BrowserRouter as Router } from 'react-router-dom';
@@ -15,7 +15,6 @@ import {
   EuiTitle,
   EuiText,
   EuiDataGrid,
-  EuiLink,
 } from '@elastic/eui';
 
 import { CoreStart } from '../../../../src/core/public';
@@ -73,6 +72,7 @@ export const MyPluginApp = ({ basename, notifications, http, navigation, data }:
           })
         }
       }
+
       setHits(dataHit);
       setDataHit(raw_data);
       notifications.toasts.addSuccess(
@@ -91,16 +91,8 @@ export const MyPluginApp = ({ basename, notifications, http, navigation, data }:
 
   const RenderCellValue = ({ rowIndex, columnId } : any) => {
     const data = useContext(DataContext);
-
-    function getFormatted() {
-      return data[rowIndex][columnId]
-    }
-    let x = 1;
-    console.log(x++)
-    return data.hasOwnProperty(rowIndex)
-      ? getFormatted(rowIndex, columnId)
-      : null;
-  };
+    return data[rowIndex][columnId] ? data[rowIndex][columnId] : null;
+  }
 
   const columns = [
     {
