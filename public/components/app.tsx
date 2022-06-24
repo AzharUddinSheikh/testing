@@ -194,7 +194,7 @@ export const MyPluginApp = ({ basename, notifications, http, navigation, data }:
                       />
                     </p>
                     <EuiHorizontalRule />
-                    <EuiButton type="primary" size="s" onClick={onSearchHandler}>
+                    <EuiButton style={{marginBottom:'15px'}} type="primary" size="s" onClick={onSearchHandler}>
                         <FormattedMessage id="myPlugin.buttonText" defaultMessage="Search data" />
                     </EuiButton>
                     { hits && 
