@@ -11,3 +11,10 @@ export interface AppPluginStartDependencies {
   navigation: NavigationPublicPluginStart;
   data: DataPublicPluginStart;
 }
+
+export interface ColumnsInterface {
+    id: any,
+    displayAsText?: string,
+    defaultSortDirection?: 'asc' | 'desc' | undefined,
+    isSortable?: false
+}

@@ -3,6 +3,7 @@ import { i18n } from '@kbn/i18n';
 import { FormattedMessage, I18nProvider } from '@kbn/i18n/react';
 import { BrowserRouter as Router } from 'react-router-dom';
 
+
 import {
   EuiButton,
   EuiHorizontalRule,
@@ -22,19 +23,13 @@ import { NavigationPublicPluginStart } from '../../../../src/plugins/navigation/
 
 import { PLUGIN_ID, PLUGIN_NAME } from '../../common';
 import { DataPublicPluginStart } from 'src/plugins/data/public';
+import { ColumnsInterface } from '../types';
 
 interface MyPluginAppDeps {
   basename: string;
   notifications: CoreStart['notifications'];
   navigation: NavigationPublicPluginStart;
   data: DataPublicPluginStart;
-}
-
-interface ColumnsInterface {
-    id: any,
-    displayAsText?: string,
-    defaultSortDirection?: 'asc' | 'desc' | undefined,
-    isSortable?: false
 }
 
 const DataContext = createContext<any>(undefined);
