@@ -26,7 +26,6 @@ import { DataPublicPluginStart } from 'src/plugins/data/public';
 interface MyPluginAppDeps {
   basename: string;
   notifications: CoreStart['notifications'];
-  http: CoreStart['http'];
   navigation: NavigationPublicPluginStart;
   data: DataPublicPluginStart;
 }
@@ -40,7 +39,7 @@ interface ColumnsInterface {
 
 const DataContext = createContext<any>(undefined);
 
-export const MyPluginApp = ({ basename, notifications, http, navigation, data }: MyPluginAppDeps) => {
+export const MyPluginApp = ({ basename, notifications, navigation, data }: MyPluginAppDeps) => {
   // Use React hooks to manage state.
   const [hits, setHits] = useState<Array<Record<string, any>>>();
   const [dataHit, setDataHit] = useState<string | any[]>([]);
@@ -62,6 +61,7 @@ export const MyPluginApp = ({ basename, notifications, http, navigation, data }:
       const searchResponse = await searchSource
         .setField('index', indexPattern)
         .setField('filter', filters)
+        .setField('size', 30)
         .fetch();
       
       const dataHit = searchResponse.hits.hits;
